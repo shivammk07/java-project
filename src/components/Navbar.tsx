@@ -1,9 +1,10 @@
 import React from 'react';
-import { FileText, Printer, RotateCcw, FolderOpen } from 'lucide-react';
+import { FileText, Printer, RotateCcw, FolderOpen, FileSpreadsheet } from 'lucide-react';
 
 interface NavbarProps {
   onReset: () => void;
   onOpenSamples: () => void;
+  onOpenPresentation: () => void;
   hasAnalysis: boolean;
   onPrint: () => void;
 }
@@ -11,6 +12,7 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   onReset,
   onOpenSamples,
+  onOpenPresentation,
   hasAnalysis,
   onPrint,
 }) => {
@@ -47,6 +49,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             Sample Library (8)
           </button>
+          <button
+            type="button"
+            onClick={onOpenPresentation}
+            className="hover:text-cyan-300 text-slate-300 transition-colors whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-1.5"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Presentation (.pptx)</span>
+          </button>
           <a
             href="#supported-formats"
             onClick={(e) => {
@@ -74,15 +84,26 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* Zone 3: Primary Action Control */}
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={onOpenPresentation}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-cyan-500/50 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer shadow-sm"
+            title="Open Interactive Presentation Deck and Download PowerPoint file"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="hidden sm:inline">Presentation Deck</span>
+            <span className="font-mono text-[10px] text-cyan-300 bg-cyan-950/80 px-1 rounded">.pptx</span>
+          </button>
+
           {!hasAnalysis ? (
             <button
               type="button"
               onClick={onOpenSamples}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
               <FolderOpen className="w-3.5 h-3.5" />
-              <span>Explore Sample Resumes</span>
+              <span>Explore Samples</span>
             </button>
           ) : (
             <div className="flex items-center gap-2">
@@ -105,7 +126,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 type="button"
                 onClick={onReset}
-                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>New Scan</span>

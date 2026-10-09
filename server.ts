@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import mammoth from 'mammoth';
@@ -559,6 +560,30 @@ function generateFallbackInterviewQuestions(resumeHighlights?: string, targetRol
 // Health check
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Endpoint: Download PowerPoint Presentation (.pptx)
+app.get('/api/download-presentation', async (_req, res) => {
+  const filePath = path.resolve(__dirname, 'CareerPulse_Presentation.pptx');
+  if (fs.existsSync(filePath)) {
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
+    res.setHeader('Content-Disposition', 'attachment; filename="CareerPulse_Project_Presentation.pptx"');
+    return res.sendFile(filePath);
+  }
+
+  try {
+    const { execSync } = await import('child_process');
+    execSync('npx tsx scripts/generate_pptx.ts');
+    if (fs.existsSync(filePath)) {
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
+      res.setHeader('Content-Disposition', 'attachment; filename="CareerPulse_Project_Presentation.pptx"');
+      return res.sendFile(filePath);
+    }
+  } catch (err: any) {
+    console.error('Error generating presentation file:', err);
+  }
+
+  res.status(404).json({ error: 'Presentation file not found.' });
 });
 
 // Endpoint: Fast Resume Analysis (<10s via ThinkingLevel.LOW + Multimodal Optimization)

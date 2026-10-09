@@ -15,7 +15,7 @@ import { CoverLetterGenerator } from './components/CoverLetterGenerator';
 import { InterviewPrepTab } from './components/InterviewPrepTab';
 import { SampleModal } from './components/SampleModal';
 import { ResumeAnalysis, SampleResume } from './types/resume';
-import { SAMPLE_RESUMES } from './data/sampleResumes';
+import { generateVisualResumeDataUrl } from './utils/resumeVisualGenerator';
 import {
   AlertOctagon,
   Sparkles,
@@ -23,12 +23,21 @@ import {
   Key,
   Mail,
   HelpCircle,
-  RotateCcw,
-  Printer,
   CheckCircle2,
-  FileText,
   AlertTriangle,
 } from 'lucide-react';
+
+interface AnalyzeRequestPayload {
+  resumeText?: string;
+  resumeBase64?: string;
+  resumeMimeType?: string;
+  fileName?: string;
+  jobTitle?: string;
+  jobDescription?: string;
+  targetLevel?: string;
+  previewImageUrl?: string;
+  forceRefresh?: boolean;
+}
 
 export default function App() {
   const [analysis, setAnalysis] = useState<ResumeAnalysis | null>(null);
@@ -40,31 +49,39 @@ export default function App() {
   const [sampleModalOpen, setSampleModalOpen] = useState(false);
   const [currentJobTitle, setCurrentJobTitle] = useState<string | undefined>();
   const [currentJobDescription, setCurrentJobDescription] = useState<string | undefined>();
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [showDocumentPreview, setShowDocumentPreview] = useState(false);
+  const [lastPayload, setLastPayload] = useState<AnalyzeRequestPayload | null>(null);
 
-  const handleAnalyze = async (payload: {
-    resumeText?: string;
-    resumeBase64?: string;
-    resumeMimeType?: string;
-    fileName?: string;
-    jobTitle?: string;
-    jobDescription?: string;
-    targetLevel?: string;
-  }) => {
+  const handleAnalyze = async (payload: AnalyzeRequestPayload) => {
     setIsLoading(true);
     setError(null);
     setCurrentJobTitle(payload.jobTitle);
     setCurrentJobDescription(payload.jobDescription);
+    setLastPayload(payload);
+    if (payload.previewImageUrl) {
+      setPreviewImageUrl(payload.previewImageUrl);
+    }
 
     try {
       const response = await fetch('/api/analyze-resume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          resumeText: payload.resumeText,
+          resumeBase64: payload.resumeBase64,
+          resumeMimeType: payload.resumeMimeType,
+          fileName: payload.fileName,
+          jobTitle: payload.jobTitle,
+          jobDescription: payload.jobDescription,
+          targetLevel: payload.targetLevel,
+          forceRefresh: payload.forceRefresh,
+        }),
       });
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.message || 'Failed to analyze resume with TEAM MOSHDI LOADING.......');
+        throw new Error(errData.message || 'Failed to analyze resume. Please try again.');
       }
 
       const data: ResumeAnalysis = await response.json();
@@ -78,12 +95,57 @@ export default function App() {
     }
   };
 
-  const handleSelectSample = (sample: SampleResume) => {
-    handleAnalyze({
+  const handleInstantSampleSelect = (sample: SampleResume, generatedPreviewUrl?: string) => {
+    setError(null);
+    setCurrentJobTitle(sample.targetJobTitle);
+    setCurrentJobDescription(sample.targetJobDescription);
+    const visualUrl = generatedPreviewUrl || generateVisualResumeDataUrl(sample);
+    setPreviewImageUrl(visualUrl);
+    setShowDocumentPreview(sample.formatType === 'photo');
+
+    const payload: AnalyzeRequestPayload = {
       resumeText: sample.resumeText,
+      fileName: `${sample.id}.${sample.formatType === 'photo' ? 'jpg' : sample.formatType}`,
       jobTitle: sample.targetJobTitle,
       jobDescription: sample.targetJobDescription,
       targetLevel: sample.level.split(' ')[0],
+      previewImageUrl: visualUrl,
+    };
+    setLastPayload(payload);
+
+    if (sample.precomputedAnalysis) {
+      setAnalysis(sample.precomputedAnalysis);
+      setActiveTab('fixes');
+    } else {
+      handleAnalyze(payload);
+    }
+  };
+
+  const handleModalSelectSample = (sample: SampleResume, mode: 'instant' | 'live') => {
+    const visualUrl = generateVisualResumeDataUrl(sample);
+    if (mode === 'instant' && sample.precomputedAnalysis) {
+      handleInstantSampleSelect(sample, visualUrl);
+    } else {
+      const base64 = visualUrl.split(',')[1] || '';
+      handleAnalyze({
+        resumeText: sample.formatType === 'photo' ? undefined : sample.resumeText,
+        resumeBase64: sample.formatType === 'photo' ? base64 : undefined,
+        resumeMimeType: sample.formatType === 'photo' ? 'image/jpeg' : undefined,
+        fileName: `${sample.id}.${sample.formatType === 'photo' ? 'jpg' : sample.formatType}`,
+        jobTitle: sample.targetJobTitle,
+        jobDescription: sample.targetJobDescription,
+        targetLevel: sample.level.split(' ')[0],
+        previewImageUrl: visualUrl,
+        forceRefresh: true,
+      });
+    }
+  };
+
+  const handleLiveRescan = () => {
+    if (!lastPayload) return;
+    handleAnalyze({
+      ...lastPayload,
+      forceRefresh: true,
     });
   };
 
@@ -92,6 +154,8 @@ export default function App() {
     setError(null);
     setCurrentJobTitle(undefined);
     setCurrentJobDescription(undefined);
+    setPreviewImageUrl(null);
+    setShowDocumentPreview(false);
   };
 
   const handlePrint = () => {
@@ -112,79 +176,91 @@ export default function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
         {/* Error Alert */}
         {error && (
-          <div className="mb-6 p-4 rounded-2xl bg-rose-950/40 border border-rose-800/60 text-rose-300 flex items-start gap-3">
+          <div className="mb-6 p-4 rounded-xl bg-rose-950/40 border border-rose-800/60 text-rose-300 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
             <div className="flex-1">
               <h3 className="font-bold text-sm text-white">Analysis Interrupted</h3>
               <p className="text-xs text-rose-300 mt-1">{error}</p>
             </div>
             <button
+              type="button"
               onClick={() => setError(null)}
-              className="text-xs px-3 py-1 rounded bg-rose-900/50 hover:bg-rose-900 text-white font-medium"
+              className="text-xs px-3 py-1 rounded bg-rose-900/50 hover:bg-rose-900 text-white font-medium cursor-pointer"
             >
               Dismiss
             </button>
           </div>
         )}
 
-        {/* View 1: Upload / Input Screen */}
+        {/* View 1: Upload / Multi-Format Input Workbench */}
         {!analysis && (
-          <ResumeUploader onAnalyze={handleAnalyze} isLoading={isLoading} />
+          <ResumeUploader
+            onAnalyze={handleAnalyze}
+            onInstantSampleSelect={handleInstantSampleSelect}
+            isLoading={isLoading}
+          />
         )}
 
         {/* View 2: Full Analysis Dashboard */}
         {analysis && (
-          <div className="space-y-8 animate-fadeIn">
+          <div className="space-y-8">
             {/* Top Score Banner & Radial Gauge */}
-            <ScoreGauge analysis={analysis} />
+            <ScoreGauge
+              analysis={analysis}
+              previewImageUrl={previewImageUrl}
+              showDocumentPreview={showDocumentPreview}
+              onToggleDocumentPreview={() => setShowDocumentPreview((prev) => !prev)}
+              onLiveRescan={lastPayload ? handleLiveRescan : undefined}
+              isRescanning={isLoading}
+            />
 
-            {/* Quick Summary Pill Bar */}
+            {/* 4-Column KPI Summary Strip */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 no-print">
-              <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
                   <AlertOctagon className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="block text-lg font-bold text-white">
+                  <span className="block text-xl font-bold text-white font-mono tabular-nums">
                     {analysis.criticalFixes?.length || 0}
                   </span>
-                  <span className="text-[11px] text-slate-400 font-medium">Critical Action Items</span>
+                  <span className="text-xs text-slate-400 font-medium">Critical Action Items</span>
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="block text-lg font-bold text-white">
+                  <span className="block text-xl font-bold text-white font-mono tabular-nums">
                     {analysis.bulletEnhancements?.length || 0}
                   </span>
-                  <span className="text-[11px] text-slate-400 font-medium">Google XYZ Rewrites</span>
+                  <span className="text-xs text-slate-400 font-medium">Google XYZ Rewrites</span>
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
                   <Key className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="block text-lg font-bold text-white">
+                  <span className="block text-xl font-bold text-white font-mono tabular-nums">
                     {analysis.keywordAnalysis?.missingCrucialKeywords?.length || 0}
                   </span>
-                  <span className="text-[11px] text-slate-400 font-medium">Missing ATS Keywords</span>
+                  <span className="text-xs text-slate-400 font-medium">Missing ATS Keywords</span>
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="block text-lg font-bold text-white">
+                  <span className="block text-xl font-bold text-white font-mono tabular-nums">
                     {analysis.strengths?.length || 0}
                   </span>
-                  <span className="text-[11px] text-slate-400 font-medium">Verified Strengths</span>
+                  <span className="text-xs text-slate-400 font-medium">Verified Strengths</span>
                 </div>
               </div>
             </div>
@@ -194,52 +270,46 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setActiveTab('fixes')}
-                className={`flex items-center gap-2 py-3 px-3.5 text-xs sm:text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${
+                className={`flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-semibold border-b-2 whitespace-nowrap shrink-0 transition-colors cursor-pointer ${
                   activeTab === 'fixes'
                     ? 'border-indigo-500 text-indigo-400 bg-indigo-500/5'
                     : 'border-transparent text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <AlertOctagon className="w-4 h-4 text-rose-400" />
-                <span>Actionable Fixes & Gaps</span>
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-800 text-slate-300">
-                  {analysis.criticalFixes?.length || 0}
-                </span>
+                <span>Actionable Fixes ({analysis.criticalFixes?.length || 0})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('bullets')}
-                className={`flex items-center gap-2 py-3 px-3.5 text-xs sm:text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${
+                className={`flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-semibold border-b-2 whitespace-nowrap shrink-0 transition-colors cursor-pointer ${
                   activeTab === 'bullets'
                     ? 'border-indigo-500 text-indigo-400 bg-indigo-500/5'
                     : 'border-transparent text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <Sparkles className="w-4 h-4 text-indigo-400" />
-                <span>Bullet Point Rewriter (XYZ)</span>
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-800 text-slate-300">
-                  {analysis.bulletEnhancements?.length || 0}
-                </span>
+                <span>Bullet Rewriter ({analysis.bulletEnhancements?.length || 0})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('keywords')}
-                className={`flex items-center gap-2 py-3 px-3.5 text-xs sm:text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${
+                className={`flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-semibold border-b-2 whitespace-nowrap shrink-0 transition-colors cursor-pointer ${
                   activeTab === 'keywords'
                     ? 'border-indigo-500 text-indigo-400 bg-indigo-500/5'
                     : 'border-transparent text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <Key className="w-4 h-4 text-amber-400" />
-                <span>Keyword Gap Analysis</span>
+                <span>Keyword Gap Matrix</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('sections')}
-                className={`flex items-center gap-2 py-3 px-3.5 text-xs sm:text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${
+                className={`flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-semibold border-b-2 whitespace-nowrap shrink-0 transition-colors cursor-pointer ${
                   activeTab === 'sections'
                     ? 'border-indigo-500 text-indigo-400 bg-indigo-500/5'
                     : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -252,20 +322,20 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setActiveTab('coverletter')}
-                className={`flex items-center gap-2 py-3 px-3.5 text-xs sm:text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${
+                className={`flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-semibold border-b-2 whitespace-nowrap shrink-0 transition-colors cursor-pointer ${
                   activeTab === 'coverletter'
                     ? 'border-indigo-500 text-indigo-400 bg-indigo-500/5'
                     : 'border-transparent text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <Mail className="w-4 h-4 text-purple-400" />
+                <Mail className="w-4 h-4 text-indigo-400" />
                 <span>Tailored Cover Letter</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('interview')}
-                className={`flex items-center gap-2 py-3 px-3.5 text-xs sm:text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${
+                className={`flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-semibold border-b-2 whitespace-nowrap shrink-0 transition-colors cursor-pointer ${
                   activeTab === 'interview'
                     ? 'border-indigo-500 text-indigo-400 bg-indigo-500/5'
                     : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -283,6 +353,7 @@ export default function App() {
                   fixes={analysis.criticalFixes || []}
                   strengths={analysis.strengths || []}
                   weaknesses={analysis.weaknesses || []}
+                  baseScore={analysis.overallScore}
                 />
               )}
 
@@ -327,21 +398,23 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-400 no-print">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <footer className="border-t border-slate-900 bg-slate-950 py-6 text-xs text-slate-400 no-print">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
-            <span>CareerPulse AI • Real-time ATS Parsing & Career Optimization</span>
-            <span className="text-slate-600">•</span>
-            <span className="text-indigo-400 font-mono">TEAM MOSHDI LOADING......</span>
+            <span className="text-slate-300 font-semibold">CareerPulse</span>
+            <span aria-hidden="true">·</span>
+            <span>Multimodal ATS & Vision OCR Resume Analyzer</span>
+            <span aria-hidden="true">·</span>
+            <span>Team Moshdi</span>
           </div>
-          <div className="flex items-center gap-4 text-slate-400 justify-center">
-            <span className="text-cyan-400 font-semibold bg-cyan-950/40 border border-cyan-800/40 px-2.5 py-1 rounded-full">
+          <div className="flex flex-wrap items-center gap-2 text-slate-400 justify-center">
+            <span className="text-cyan-400 font-medium">
               Designed by Shivam Kumar
             </span>
-            <span>•</span>
-            <span>Confidential & Private</span>
-            <span>•</span>
-            <span>Google XYZ Metric Formula</span>
+            <span aria-hidden="true">·</span>
+            <span>Supports PDF, Photos, DOCX & Text</span>
+            <span aria-hidden="true">·</span>
+            <span>Google XYZ Formula</span>
           </div>
         </div>
       </footer>
@@ -350,7 +423,7 @@ export default function App() {
       <SampleModal
         isOpen={sampleModalOpen}
         onClose={() => setSampleModalOpen(false)}
-        onSelectSample={handleSelectSample}
+        onSelectSample={handleModalSelectSample}
       />
     </div>
   );

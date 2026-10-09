@@ -1,6 +1,6 @@
 {
   "name": "CareerPulse - AI Resume Analyzer",
   "description": "Smart ATS score analysis, job match comparison, keyword gap detection, and executive bullet rewriting powered by Gemini.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

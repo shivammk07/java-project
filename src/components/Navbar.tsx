@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, FileText, Printer, RotateCcw, Award } from 'lucide-react';
+import { FileText, Printer, RotateCcw, FolderOpen } from 'lucide-react';
 
 interface NavbarProps {
   onReset: () => void;
@@ -15,70 +15,103 @@ export const Navbar: React.FC<NavbarProps> = ({
   onPrint,
 }) => {
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-lg shadow-indigo-500/20">
-            <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-              <FileText className="w-5 h-5 text-indigo-400" />
-            </div>
+    <header className="sticky top-0 z-40 w-full border-b border-slate-800/90 bg-slate-950/90 backdrop-blur-md no-print">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-8">
+        {/* Zone 1: Single-line Brand Wordmark */}
+        <button
+          type="button"
+          onClick={onReset}
+          className="flex items-center gap-2.5 text-left group whitespace-nowrap shrink-0 cursor-pointer focus:outline-none"
+        >
+          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm group-hover:bg-indigo-500 transition-colors">
+            <FileText className="w-4 h-4" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-lg tracking-tight text-white">CareerPulse</span>
-              <span className="px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 animate-pulse">
-                TEAM MOSHDI LOADING......
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <p className="text-xs text-slate-400 hidden sm:block">Executive Resume Analyzer & Career Optimizer</p>
-              <span className="hidden sm:inline text-slate-600">•</span>
-              <span className="text-[11px] font-medium text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded-full border border-cyan-800/40">
-                Designed by Shivam Kumar
-              </span>
-            </div>
-          </div>
-        </div>
+          <span className="font-bold text-lg tracking-tight text-white">
+            CareerPulse
+          </span>
+        </button>
 
-        {/* Action Controls */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* Zone 2: Clean Single-Line Navigation Links */}
+        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-400">
+          <button
+            type="button"
+            onClick={onReset}
+            className="hover:text-white transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+          >
+            Analyzer Workspace
+          </button>
           <button
             type="button"
             onClick={onOpenSamples}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg transition-all"
+            className="hover:text-white transition-colors whitespace-nowrap shrink-0 cursor-pointer"
           >
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            <span className="hidden sm:inline">Try Sample</span> Resumes
+            Sample Library (8)
           </button>
+          <a
+            href="#supported-formats"
+            onClick={(e) => {
+              if (hasAnalysis) {
+                e.preventDefault();
+                onReset();
+              }
+            }}
+            className="hover:text-white transition-colors whitespace-nowrap shrink-0"
+          >
+            Supported Formats
+          </a>
+          <a
+            href="#xyz-methodology"
+            onClick={(e) => {
+              if (hasAnalysis) {
+                e.preventDefault();
+                onReset();
+              }
+            }}
+            className="hover:text-white transition-colors whitespace-nowrap shrink-0"
+          >
+            XYZ Methodology
+          </a>
+        </nav>
 
-          {hasAnalysis && (
-            <>
+        {/* Zone 3: Primary Action Control */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          {!hasAnalysis ? (
+            <button
+              type="button"
+              onClick={onOpenSamples}
+              className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              <FolderOpen className="w-3.5 h-3.5" />
+              <span>Explore Sample Resumes</span>
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onOpenSamples}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              >
+                <FolderOpen className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Switch Sample</span>
+              </button>
               <button
                 type="button"
                 onClick={onPrint}
-                className="no-print flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg transition-all"
-                title="Print or Save as PDF"
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               >
-                <Printer className="w-4 h-4 text-cyan-400" />
-                <span className="hidden sm:inline">Export</span> Report
+                <Printer className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Export PDF</span>
               </button>
-
               <button
                 type="button"
                 onClick={onReset}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-900 rounded-lg transition-all"
+                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>New Scan</span>
               </button>
-            </>
+            </div>
           )}
-
-          <div className="hidden md:flex items-center gap-1.5 pl-3 border-l border-slate-800 text-xs text-slate-400">
-            <Award className="w-3.5 h-3.5 text-emerald-400" />
-            <span>99.4% ATS Precision</span>
-          </div>
         </div>
       </div>
     </header>

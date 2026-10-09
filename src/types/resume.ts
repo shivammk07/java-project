@@ -60,7 +60,12 @@ export interface ResumeAnalysis {
   atsComplianceChecklist: AtsChecklistItem[];
   estimatedYoe?: string;
   topSkillsIdentified: string[];
+  analysisTimeMs?: number;
+  detectedFormat?: string;
+  cached?: boolean;
 }
+
+export type ResumeFormatType = 'text' | 'photo' | 'pdf' | 'docx';
 
 export interface SampleResume {
   id: string;
@@ -68,7 +73,16 @@ export interface SampleResume {
   role: string;
   level: string;
   tagline: string;
+  formatType: ResumeFormatType;
+  formatBadge: string;
+  visualStyle: 'clean-pdf' | 'camera-photo' | 'executive-docx' | 'plain-text';
+  location: string;
+  email: string;
+  phone: string;
+  linkedin: string;
   resumeText: string;
   targetJobTitle: string;
   targetJobDescription: string;
+  precomputedAnalysis?: ResumeAnalysis;
 }
+

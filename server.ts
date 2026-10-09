@@ -994,6 +994,23 @@ Return JSON format:
   }
 });
 
+// Endpoint: Download PowerPoint Presentation file (.pptx)
+app.get('/api/download-presentation', (_req, res) => {
+  const pptxPath = path.resolve(__dirname, 'CareerPulse_Presentation.pptx');
+  if (fs.existsSync(pptxPath)) {
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="CareerPulse_Project_Presentation.pptx"'
+    );
+    return res.sendFile(pptxPath);
+  }
+  return res.status(404).json({ error: 'Presentation file not found' });
+});
+
 // Vite middleware or static serving
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {

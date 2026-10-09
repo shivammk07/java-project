@@ -14,7 +14,6 @@ import { SectionAudit } from './components/SectionAudit';
 import { CoverLetterGenerator } from './components/CoverLetterGenerator';
 import { InterviewPrepTab } from './components/InterviewPrepTab';
 import { SampleModal } from './components/SampleModal';
-import { PresentationModal } from './components/PresentationModal';
 import { ResumeAnalysis, SampleResume } from './types/resume';
 import { generateVisualResumeDataUrl } from './utils/resumeVisualGenerator';
 import {
@@ -76,7 +75,6 @@ export default function App() {
     'fixes' | 'bullets' | 'keywords' | 'sections' | 'coverletter' | 'interview'
   >('fixes');
   const [sampleModalOpen, setSampleModalOpen] = useState(false);
-  const [presentationModalOpen, setPresentationModalOpen] = useState(false);
   const [currentJobTitle, setCurrentJobTitle] = useState<string | undefined>();
   const [currentJobDescription, setCurrentJobDescription] = useState<string | undefined>();
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
@@ -199,7 +197,6 @@ export default function App() {
       <Navbar
         onReset={handleReset}
         onOpenSamples={() => setSampleModalOpen(true)}
-        onOpenPresentation={() => setPresentationModalOpen(true)}
         hasAnalysis={!!analysis}
         onPrint={handlePrint}
       />
@@ -495,12 +492,6 @@ export default function App() {
         isOpen={sampleModalOpen}
         onClose={() => setSampleModalOpen(false)}
         onSelectSample={handleModalSelectSample}
-      />
-
-      {/* Presentation Slide Deck Modal (.pptx) */}
-      <PresentationModal
-        isOpen={presentationModalOpen}
-        onClose={() => setPresentationModalOpen(false)}
       />
     </div>
   );

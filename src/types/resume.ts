@@ -63,6 +63,9 @@ export interface ResumeAnalysis {
   analysisTimeMs?: number;
   detectedFormat?: string;
   cached?: boolean;
+  isFallbackEngine?: boolean;
+  engineNotice?: string;
+  modelUsed?: string;
 }
 
 export type ResumeFormatType = 'text' | 'photo' | 'pdf' | 'docx';

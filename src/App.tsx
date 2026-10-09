@@ -37,6 +37,34 @@ interface AnalyzeRequestPayload {
   targetLevel?: string;
   previewImageUrl?: string;
   forceRefresh?: boolean;
+  forceLocal?: boolean;
+}
+
+function formatErrorMessage(raw: string): { title: string; message: string; isDemandSpike: boolean } {
+  const isSpike =
+    raw.includes('503') ||
+    raw.includes('UNAVAILABLE') ||
+    raw.includes('high demand') ||
+    raw.includes('429') ||
+    raw.includes('RESOURCE_EXHAUSTED');
+
+  if (isSpike) {
+    return {
+      title: 'Gemini Cloud Traffic Spike (503 Handled)',
+      message:
+        'The Gemini model is temporarily experiencing peak cloud traffic. We provide instant auto-failover routing and CPRW turbo auditing so your audit workflow is never blocked.',
+      isDemandSpike: true,
+    };
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed.message) {
+      return { title: 'Analysis Notice', message: parsed.message, isDemandSpike: false };
+    }
+  } catch {}
+
+  return { title: 'Analysis Interrupted', message: raw, isDemandSpike: false };
 }
 
 export default function App() {
@@ -76,6 +104,7 @@ export default function App() {
           jobDescription: payload.jobDescription,
           targetLevel: payload.targetLevel,
           forceRefresh: payload.forceRefresh,
+          forceLocal: payload.forceLocal,
         }),
       });
 
@@ -175,22 +204,61 @@ export default function App() {
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
         {/* Error Alert */}
-        {error && (
-          <div className="mb-6 p-4 rounded-xl bg-rose-950/40 border border-rose-800/60 text-rose-300 flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <h3 className="font-bold text-sm text-white">Analysis Interrupted</h3>
-              <p className="text-xs text-rose-300 mt-1">{error}</p>
+        {error && (() => {
+          const formatted = formatErrorMessage(error);
+          return (
+            <div className="mb-6 p-4.5 rounded-2xl bg-slate-900/95 border border-rose-500/40 text-slate-200 shadow-2xl backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3 flex-1">
+                <div className="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0 mt-0.5">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                    {formatted.title}
+                    {formatted.isDemandSpike && (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold">
+                        Auto-Failover Ready
+                      </span>
+                    )}
+                  </h3>
+                  <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                    {formatted.message}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 pt-2 sm:pt-0 border-t border-slate-800 sm:border-0">
+                {lastPayload && (
+                  <button
+                    type="button"
+                    onClick={() => handleAnalyze({ ...lastPayload, forceLocal: true })}
+                    disabled={isLoading}
+                    className="flex-1 sm:flex-initial text-xs px-3.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-colors cursor-pointer shadow-sm"
+                  >
+                    Run Instant Turbo Audit
+                  </button>
+                )}
+                {lastPayload && (
+                  <button
+                    type="button"
+                    onClick={() => handleAnalyze({ ...lastPayload, forceRefresh: true })}
+                    disabled={isLoading}
+                    className="flex-1 sm:flex-initial text-xs px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium border border-slate-700 transition-colors cursor-pointer"
+                  >
+                    Retry AI Scan
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setError(null)}
+                  className="text-xs px-3 py-2 rounded-lg bg-transparent hover:bg-slate-800 text-slate-400 hover:text-white font-medium cursor-pointer"
+                >
+                  Dismiss
+                </button>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setError(null)}
-              className="text-xs px-3 py-1 rounded bg-rose-900/50 hover:bg-rose-900 text-white font-medium cursor-pointer"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
+          );
+        })()}
 
         {/* View 1: Upload / Multi-Format Input Workbench */}
         {!analysis && (

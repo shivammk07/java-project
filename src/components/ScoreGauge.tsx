@@ -121,6 +121,14 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
                 </span>
               </>
             )}
+            {analysis.isFallbackEngine && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span className="flex items-center gap-1 font-mono text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded border border-amber-500/30 text-[11px] font-semibold">
+                  ⚡ Cloud Demand Shield Active
+                </span>
+              </>
+            )}
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -171,6 +179,28 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
           )}
         </div>
       </div>
+
+      {/* Cloud Demand Protection Notice */}
+      {analysis.isFallbackEngine && (
+        <div className="mt-5 p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/30 text-amber-200 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 no-print">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0 animate-pulse" />
+            <span className="leading-relaxed">
+              <strong>High Cloud Demand Shield Active:</strong> Gemini is currently experiencing high cloud demand (503). Your resume audit was compiled instantly with zero interruption via our CPRW Turbo Failover Engine.
+            </span>
+          </div>
+          {onLiveRescan && (
+            <button
+              type="button"
+              onClick={onLiveRescan}
+              disabled={isRescanning}
+              className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-100 border border-amber-500/40 font-semibold cursor-pointer shrink-0 transition-colors"
+            >
+              {isRescanning ? 'Scanning...' : 'Re-run Cloud Scan'}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Collapsible Visual Document / Photo Inspector */}
       {showDocumentPreview && previewImageUrl && (

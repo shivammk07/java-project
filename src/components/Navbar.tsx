@@ -27,11 +27,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-lg tracking-tight text-white">CareerPulse</span>
-              <span className="px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                AI ATS 3.8
+              <span className="px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 animate-pulse">
+                TEAM MOSHDI LOADING......
               </span>
             </div>
-            <p className="text-xs text-slate-400 hidden sm:block">Executive Resume Analyzer & Career Optimizer</p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-slate-400 hidden sm:block">Executive Resume Analyzer & Career Optimizer</p>
+              <span className="hidden sm:inline text-slate-600">•</span>
+              <span className="text-[11px] font-medium text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded-full border border-cyan-800/40">
+                Designed by Shivam Kumar
+              </span>
+            </div>
           </div>
         </div>
 

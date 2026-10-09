@@ -148,7 +148,7 @@ export const BulletTransformer: React.FC<BulletTransformerProps> = ({ bullets, t
                 <div className="p-3.5 rounded-xl bg-indigo-950/30 border border-indigo-800/40">
                   <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 uppercase tracking-wider mb-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    Gemini Enhanced (Metrics & Action)
+                    TEAM MOSHDI LOADING...... Enhanced (Metrics & Action)
                   </div>
                   <p className="text-xs sm:text-sm text-slate-100 font-medium leading-relaxed">
                     "{item.improved}"

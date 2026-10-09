@@ -131,9 +131,11 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({ onAnalyze, isLoa
     <div className="max-w-4xl mx-auto">
       {/* Intro Hero */}
       <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-3">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-3">
           <Sparkles className="w-3.5 h-3.5" />
-          Powered by Gemini 3.8 Flash • Executive Recruiter Intelligence
+          <span>TEAM MOSHDI LOADING......</span>
+          <span className="text-slate-600">•</span>
+          <span className="text-cyan-400">Designed by Shivam Kumar</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
           Supercharge Your Resume For Top ATS & Hiring Managers
@@ -377,7 +379,7 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({ onAnalyze, isLoa
               {isLoading ? (
                 <>
                   <div className="w-5 h-5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
-                  <span>Auditing Resume with Gemini 3.8 AI...</span>
+                  <span className="font-mono">Auditing Resume with TEAM MOSHDI LOADING......</span>
                 </>
               ) : (
                 <>
@@ -387,7 +389,7 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({ onAnalyze, isLoa
               )}
             </button>
             <p className="text-[11px] text-center text-slate-400 mt-2">
-              Confidential analysis • Evaluates ATS parsing, Google XYZ metric formula, and keyword gaps
+              Confidential analysis • Evaluates ATS parsing, Google XYZ metric formula • <span className="text-cyan-400 font-medium">Designed by Shivam Kumar</span>
             </p>
           </div>
         </form>

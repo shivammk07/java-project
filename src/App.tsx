@@ -64,7 +64,7 @@ export default function App() {
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.message || 'Failed to analyze resume with Gemini AI.');
+        throw new Error(errData.message || 'Failed to analyze resume with TEAM MOSHDI LOADING.......');
       }
 
       const data: ResumeAnalysis = await response.json();
@@ -329,10 +329,16 @@ export default function App() {
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-400 no-print">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>
-            CareerPulse AI • Real-time ATS Parsing & Career Optimization powered by Gemini 3.8
-          </p>
-          <div className="flex items-center gap-4 text-slate-400">
+          <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
+            <span>CareerPulse AI • Real-time ATS Parsing & Career Optimization</span>
+            <span className="text-slate-600">•</span>
+            <span className="text-indigo-400 font-mono">TEAM MOSHDI LOADING......</span>
+          </div>
+          <div className="flex items-center gap-4 text-slate-400 justify-center">
+            <span className="text-cyan-400 font-semibold bg-cyan-950/40 border border-cyan-800/40 px-2.5 py-1 rounded-full">
+              Designed by Shivam Kumar
+            </span>
+            <span>•</span>
             <span>Confidential & Private</span>
             <span>•</span>
             <span>Google XYZ Metric Formula</span>

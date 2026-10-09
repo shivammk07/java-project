@@ -77,9 +77,15 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({ analysis }) => {
       {/* Header Info */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
             <ShieldCheck className="w-4 h-4 text-indigo-400" />
-            ATS Audit Report
+            <span>ATS Audit Report</span>
+            <span className="text-slate-600">•</span>
+            <span className="text-indigo-400 font-mono text-[10px]">TEAM MOSHDI LOADING......</span>
+            <span className="text-slate-600">•</span>
+            <span className="text-cyan-400 normal-case font-medium text-[11px] bg-cyan-950/40 px-2 py-0.5 rounded-full border border-cyan-800/40">
+              Designed by Shivam Kumar
+            </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
             {candidateName || 'Candidate Profile'}
